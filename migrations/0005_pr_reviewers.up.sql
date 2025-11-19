@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS pr_reviewers (
     reviewer_id UUID NOT NULL,
     PRIMARY KEY (pr_id, reviewer_id),
     FOREIGN KEY (pr_id) REFERENCES pull_requests(id) ON DELETE CASCADE,
-    FOREIGN KEY (reviewer_id) REFERENCES users(id),
+    FOREIGN KEY (reviewer_id) REFERENCES users(id)
 );

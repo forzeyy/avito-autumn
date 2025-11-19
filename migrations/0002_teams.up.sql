@@ -1,4 +1,4 @@
 -- +migrate Up
 CREATE TABLE IF NOT EXISTS teams (
-    name TEXT UNIQUE PRIMARY KEY;
+    name TEXT UNIQUE PRIMARY KEY
 );
