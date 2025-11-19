@@ -1,0 +1,8 @@
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS pr_reviewers (
+    pr_id UUID NOT NULL,
+    reviewer_id UUID NOT NULL,
+    PRIMARY KEY (pr_id, reviewer_id),
+    FOREIGN KEY (pr_id) REFERENCES pull_requests(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewer_id) REFERENCES users(id),
+);
