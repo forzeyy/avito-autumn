@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/forzeyy/avito-autumn/internal/database"
 	"github.com/forzeyy/avito-autumn/internal/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -19,10 +18,10 @@ type UserRepo interface {
 }
 
 type userRepo struct {
-	db database.DB
+	db DBInterface
 }
 
-func NewUserRepo(db database.DB) UserRepo {
+func NewUserRepo(db DBInterface) UserRepo {
 	return &userRepo{
 		db: db,
 	}

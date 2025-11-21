@@ -47,6 +47,39 @@ func (db *DB) Query(ctx context.Context, query string, args ...interface{}) (pgx
 	return rows, nil
 }
 
+type TxFunc func(tx pgx.Tx) error
+
+func (db *DB) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error) {
+	return db.pool.BeginTx(ctx, txOptions)
+}
+
+func (db *DB) WithinTx(ctx context.Context, txFunc TxFunc, txOptions pgx.TxOptions) error {
+	tx, err := db.pool.BeginTx(ctx, txOptions)
+	if err != nil {
+		return fmt.Errorf("не удалось начать транзакцию: %v", err)
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback(ctx)
+			panic(p)
+		} else if err != nil {
+			_ = tx.Rollback(ctx)
+		}
+	}()
+
+	err = txFunc(tx)
+	if err != nil {
+		rbErr := tx.Rollback(ctx)
+		if rbErr != nil {
+			return fmt.Errorf("ошибка при выполнении функции: %v, ошибка при роллбеке: %v", err, rbErr)
+		}
+		return err
+	}
+
+	return tx.Commit(ctx)
+}
+
 func (db *DB) Close() {
 	db.pool.Close()
 }
