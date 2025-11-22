@@ -16,6 +16,8 @@ type PRRepo interface {
 	UpdatePRStatus(ctx context.Context, prID string, status models.Status) (*models.PullRequest, error)
 	ReplaceReviewer(ctx context.Context, prID, oldReviewerID, newReviewerID string) error
 	IsPRMerged(ctx context.Context, prID string) (*bool, error)
+	GetTotalPRCount(ctx context.Context) (int, error)
+	GetReviewCountByUser(ctx context.Context) ([]models.UserStats, error)
 }
 
 type prRepo struct {
@@ -65,7 +67,6 @@ func (prr *prRepo) CreatePR(ctx context.Context, pr *models.PullRequest) error {
 func (prr *prRepo) GetPRByID(ctx context.Context, prID string) (*models.PullRequest, error) {
 	var pr models.PullRequest
 
-	// Получаем основные данные PR
 	query := `
 		SELECT id, name, author_id, status
 		FROM pull_requests
@@ -220,4 +221,45 @@ func (prr *prRepo) IsPRMerged(ctx context.Context, prID string) (*bool, error) {
 	}
 	isMerged := status == string(models.StatusMerged)
 	return &isMerged, nil
+}
+
+func (prr *prRepo) GetTotalPRCount(ctx context.Context) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM pull_requests`
+	err := prr.db.QueryRow(ctx, query).Scan(&count)
+	return count, err
+}
+
+func (prr *prRepo) GetReviewCountByUser(ctx context.Context) ([]models.UserStats, error) {
+	query := `
+        SELECT 
+            u.user_id,
+            u.username,
+            COALESCE(review_stats.count, 0) AS review_count,
+            u.is_active
+        FROM users u
+        LEFT JOIN (
+            SELECT reviewer_id, COUNT(*) AS count
+            FROM pr_reviewers
+            GROUP BY reviewer_id
+        ) AS review_stats ON u.user_id = review_stats.reviewer_id
+        ORDER BY review_count DESC, u.username
+    `
+
+	rows, err := prr.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []models.UserStats
+	for rows.Next() {
+		var s models.UserStats
+		err := rows.Scan(&s.UserID, &s.Username, &s.ReviewCount, &s.IsActive)
+		if err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+	return stats, nil
 }

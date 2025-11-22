@@ -16,10 +16,12 @@ func InitRoutes(e *echo.Echo, db *database.DB) {
 	userService := services.NewUserService(userRepo, prRepo)
 	prService := services.NewPRService(prRepo, userRepo)
 	teamService := services.NewTeamService(teamRepo, userRepo)
+	statsService := services.NewStatsService(prRepo, userRepo)
 
 	userHandler := handlers.NewUserHandler(userService)
 	prHandler := handlers.NewPRHandler(prService)
 	teamHandler := handlers.NewTeamHandler(teamService)
+	statsHandler := handlers.NewStatsHandler(statsService)
 
 	// users
 	e.POST("/users/setIsActive", userHandler.SetUserActive)
@@ -33,4 +35,7 @@ func InitRoutes(e *echo.Echo, db *database.DB) {
 	// teams
 	e.POST("/team/add", teamHandler.CreateTeam)
 	e.GET("/team/get", teamHandler.GetTeam)
+
+	// stats
+	e.GET("/stats", statsHandler.GetStats)
 }
