@@ -93,13 +93,17 @@ func (prs *prService) MergePR(ctx context.Context, prID string) (*models.PullReq
 }
 
 func (prs *prService) ReassignReviewer(ctx context.Context, prID, oldReviewerID string) (*models.PullRequest, string, error) {
+	if prID == "" || oldReviewerID == "" {
+		return nil, "", errors.New("INVALID_INPUT")
+	}
+
 	pr, err := prs.prRepo.GetPRByID(ctx, prID)
 	if err != nil {
 		return nil, "", errors.New("NOT_FOUND")
 	}
 
 	if pr.Status == models.StatusMerged {
-		return nil, "", errors.New("NOT_FOUND")
+		return nil, "", errors.New("PR_MERGED")
 	}
 
 	isAssigned := false
@@ -122,12 +126,26 @@ func (prs *prService) ReassignReviewer(ctx context.Context, prID, oldReviewerID 
 	if err != nil {
 		return nil, "", errors.New("NO_CANDIDATE")
 	}
+
 	var available []string
 	for _, user := range candidates {
-		if user.ID != oldReviewerID && user.ID != pr.AuthorID {
+		if user.ID == oldReviewerID || user.ID == pr.AuthorID {
+			continue
+		}
+
+		// на всякий случай
+		isAlreadyAssigned := false
+		for _, assigned := range pr.AssignedReviewers {
+			if assigned == user.ID && assigned != oldReviewerID {
+				isAlreadyAssigned = true
+				break
+			}
+		}
+		if !isAlreadyAssigned {
 			available = append(available, user.ID)
 		}
 	}
+
 	if len(available) == 0 {
 		return nil, "", errors.New("NO_CANDIDATE")
 	}

@@ -65,6 +65,7 @@ func (prr *prRepo) CreatePR(ctx context.Context, pr *models.PullRequest) error {
 func (prr *prRepo) GetPRByID(ctx context.Context, prID string) (*models.PullRequest, error) {
 	var pr models.PullRequest
 
+	// Получаем основные данные PR
 	query := `
 		SELECT id, name, author_id, status
 		FROM pull_requests
@@ -79,6 +80,31 @@ func (prr *prRepo) GetPRByID(ctx context.Context, prID string) (*models.PullRequ
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при получении пулл реквеста: %v", err)
 	}
+
+	reviewersQuery := `
+		SELECT reviewer_id
+		FROM pr_reviewers
+		WHERE pr_id = $1
+	`
+
+	reviewersRows, err := prr.db.Query(ctx, reviewersQuery, prID)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при получении ревьюеров: %v", err)
+	}
+	defer reviewersRows.Close()
+
+	var reviewers []string
+	for reviewersRows.Next() {
+		var reviewerID string
+		err := reviewersRows.Scan(&reviewerID)
+		if err != nil {
+			return nil, fmt.Errorf("ошибка при сканировании ревьюера: %v", err)
+		}
+		reviewers = append(reviewers, reviewerID)
+	}
+
+	pr.AssignedReviewers = reviewers
+
 	return &pr, nil
 }
 
@@ -118,7 +144,7 @@ func (prr *prRepo) UpdatePRStatus(ctx context.Context, prID string, status model
 		UPDATE pull_requests
 		SET status = $1, merged_at = CASE WHEN $1 = 'MERGED'
 										  THEN CURRENT_TIMESTAMP ELSE merged_at END
-		WHERE pull_request_id = $2
+		WHERE id = $2
 	`
 	_, err := prr.db.Exec(ctx, query, status, prID)
 	if err != nil {
@@ -128,15 +154,52 @@ func (prr *prRepo) UpdatePRStatus(ctx context.Context, prID string, status model
 }
 
 func (prr *prRepo) ReplaceReviewer(ctx context.Context, prID, oldReviewerID, newReviewerID string) error {
-	query := `
-		UPDATE pr_reviewers
-		SET reviewer_id = $1
-		WHERE pr_id = $2 AND reviewer_id = $3
-	`
-	_, err := prr.db.Exec(ctx, query, newReviewerID, prID, oldReviewerID)
-	if err != nil {
-		return fmt.Errorf("не удалось заменить ревьюера: %v", err)
+	txFunc := func(tx pgx.Tx) error {
+		var count int
+		err := tx.QueryRow(ctx,
+			"SELECT COUNT(*) FROM pr_reviewers WHERE pr_id = $1 AND reviewer_id = $2",
+			prID, oldReviewerID).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("failed to check old reviewer existence: %w", err)
+		}
+		if count == 0 {
+			return errors.New("NOT_ASSIGNED")
+		}
+
+		err = tx.QueryRow(ctx,
+			"SELECT COUNT(*) FROM pr_reviewers WHERE pr_id = $1 AND reviewer_id = $2",
+			prID, newReviewerID).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("failed to check new reviewer existence: %w", err)
+		}
+
+		if count > 0 {
+			_, err = tx.Exec(ctx,
+				"DELETE FROM pr_reviewers WHERE pr_id = $1 AND reviewer_id = $2",
+				prID, oldReviewerID)
+			if err != nil {
+				return fmt.Errorf("failed to delete old reviewer: %w", err)
+			}
+		} else {
+			result, err := tx.Exec(ctx,
+				"UPDATE pr_reviewers SET reviewer_id = $1 WHERE pr_id = $2 AND reviewer_id = $3",
+				newReviewerID, prID, oldReviewerID)
+			if err != nil {
+				return fmt.Errorf("failed to replace reviewer: %w", err)
+			}
+
+			rowsAffected := result.RowsAffected()
+			if rowsAffected == 0 {
+				return errors.New("NOT_ASSIGNED")
+			}
+		}
+		return nil
 	}
+	err := prr.db.WithinTx(ctx, txFunc, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("ошибка транзакции при создании пулл реквеста: %v", err)
+	}
+
 	return nil
 }
 
