@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS pull_requests (
     FOREIGN KEY (author_id) REFERENCES users(id)
 );
 
-CREATE INDEX idx_pull_requests_pr_id ON pull_requests (pull_request_id);
+CREATE INDEX idx_pull_requests_pr_id ON pull_requests (id);

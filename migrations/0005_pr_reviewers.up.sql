@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS pr_reviewers (
     FOREIGN KEY (reviewer_id) REFERENCES users(id)
 );
 
-CREATE INDEX idx_pr_reviewers_pr_id ON pr_reviewers (pull_request_id);
+CREATE INDEX idx_pr_reviewers_pr_id ON pr_reviewers (pr_id);

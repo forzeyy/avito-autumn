@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS users (
     FOREIGN KEY (team_name) REFERENCES teams(name) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_users_user_id ON users (user_id);
+CREATE INDEX idx_users_user_id ON users (id);
