@@ -6,3 +6,5 @@ CREATE TABLE IF NOT EXISTS pr_reviewers (
     FOREIGN KEY (pr_id) REFERENCES pull_requests(id) ON DELETE CASCADE,
     FOREIGN KEY (reviewer_id) REFERENCES users(id)
 );
+
+CREATE INDEX idx_pr_reviewers_pr_id ON pr_reviewers (pull_request_id);

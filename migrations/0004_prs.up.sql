@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS pull_requests (
     merged_at TIMESTAMP,
     FOREIGN KEY (author_id) REFERENCES users(id)
 );
+
+CREATE INDEX idx_pull_requests_pr_id ON pull_requests (pull_request_id);
