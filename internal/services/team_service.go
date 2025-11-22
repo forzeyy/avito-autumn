@@ -31,7 +31,7 @@ func (ts *teamService) CreateTeam(ctx context.Context, team *models.Team) error 
 		return err
 	}
 	if *exists {
-		return errors.New("TEAM_EXISTS")
+		return errors.New(TEAM_EXISTS)
 	}
 
 	err = ts.teamRepo.CreateTeam(ctx, team.Name)

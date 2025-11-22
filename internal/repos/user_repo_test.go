@@ -30,12 +30,12 @@ func (m *MockDB) Exec(ctx context.Context, query string, args ...interface{}) (p
 	return m.mock.Exec(ctx, query, args...)
 }
 
-func (m *MockDB) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error) {
-	return m.mock.BeginTx(ctx, txOptions)
+func (m *MockDB) BeginTx(ctx context.Context, txOptions *pgx.TxOptions) (pgx.Tx, error) {
+	return m.mock.BeginTx(ctx, *txOptions)
 }
 
-func (m *MockDB) WithinTx(ctx context.Context, txFunc database.TxFunc, txOptions pgx.TxOptions) error {
-	tx, err := m.mock.BeginTx(ctx, txOptions)
+func (m *MockDB) WithinTx(ctx context.Context, txFunc database.TxFunc, txOptions *pgx.TxOptions) error {
+	tx, err := m.mock.BeginTx(ctx, *txOptions)
 	if err != nil {
 		return err
 	}

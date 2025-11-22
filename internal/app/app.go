@@ -21,7 +21,7 @@ func Run(cfg *config.Config) error {
 	defer conn.Close()
 
 	e := echo.New()
-	routes.InitRoutes(e, conn, cfg)
+	routes.InitRoutes(e, conn)
 	e.Logger.Fatal(e.Start(":8080"))
 
 	return nil

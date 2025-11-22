@@ -54,7 +54,7 @@ func (prr *prRepo) CreatePR(ctx context.Context, pr *models.PullRequest) error {
 		}
 		return nil
 	}
-	err := prr.db.WithinTx(ctx, txFunc, pgx.TxOptions{})
+	err := prr.db.WithinTx(ctx, txFunc, &pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("ошибка транзакции при создании пулл реквеста: %v", err)
 	}
@@ -195,7 +195,7 @@ func (prr *prRepo) ReplaceReviewer(ctx context.Context, prID, oldReviewerID, new
 		}
 		return nil
 	}
-	err := prr.db.WithinTx(ctx, txFunc, pgx.TxOptions{})
+	err := prr.db.WithinTx(ctx, txFunc, &pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("ошибка транзакции при создании пулл реквеста: %v", err)
 	}

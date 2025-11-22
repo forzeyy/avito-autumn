@@ -28,7 +28,7 @@ func NewUserService(userRepo repos.UserRepo, prRepo repos.PRRepo) UserService {
 func (us *userService) SetUserActive(ctx context.Context, userID string, isActive bool) (*models.User, error) {
 	user, err := us.userRepo.SetUserActive(ctx, userID, isActive)
 	if err != nil {
-		return nil, errors.New("NOT_FOUND")
+		return nil, errors.New(NOT_FOUND)
 	}
 	return user, nil
 }
@@ -36,7 +36,7 @@ func (us *userService) SetUserActive(ctx context.Context, userID string, isActiv
 func (us *userService) GetPRsByReviewer(ctx context.Context, userID string) ([]models.PullRequestShort, error) {
 	prs, err := us.prRepo.GetPRsByReviewer(ctx, userID)
 	if err != nil {
-		return nil, errors.New("NOT_FOUND")
+		return nil, errors.New(NOT_FOUND)
 	}
 	return prs, nil
 }

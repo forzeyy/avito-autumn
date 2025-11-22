@@ -30,17 +30,17 @@ func NewPRService(prRepo repos.PRRepo, userRepo repos.UserRepo) PRService {
 func (prs *prService) CreatePR(ctx context.Context, prID string, prName string, authorID string) (*models.PullRequest, error) {
 	_, err := prs.prRepo.GetPRByID(ctx, prID)
 	if err == nil {
-		return nil, errors.New("PR_EXISTS")
+		return nil, errors.New(PR_EXISTS)
 	}
 
 	author, err := prs.userRepo.GetUser(ctx, authorID)
 	if err != nil {
-		return nil, errors.New("NOT_FOUND")
+		return nil, errors.New(NOT_FOUND)
 	}
 
 	teamUsers, err := prs.userRepo.GetActiveUsersByTeam(ctx, author.TeamName)
 	if err != nil {
-		return nil, errors.New("NOT_FOUND")
+		return nil, errors.New(NOT_FOUND)
 	}
 
 	var reviewers []string
@@ -76,7 +76,7 @@ func (prs *prService) CreatePR(ctx context.Context, prID string, prName string, 
 func (prs *prService) MergePR(ctx context.Context, prID string) (*models.PullRequest, error) {
 	pr, err := prs.prRepo.GetPRByID(ctx, prID)
 	if err != nil {
-		return nil, errors.New("NOT_FOUND")
+		return nil, errors.New(NOT_FOUND)
 	}
 
 	if pr.Status == models.StatusMerged {
@@ -94,16 +94,16 @@ func (prs *prService) MergePR(ctx context.Context, prID string) (*models.PullReq
 
 func (prs *prService) ReassignReviewer(ctx context.Context, prID, oldReviewerID string) (*models.PullRequest, string, error) {
 	if prID == "" || oldReviewerID == "" {
-		return nil, "", errors.New("INVALID_INPUT")
+		return nil, "", errors.New(INVALID_INPUT)
 	}
 
 	pr, err := prs.prRepo.GetPRByID(ctx, prID)
 	if err != nil {
-		return nil, "", errors.New("NOT_FOUND")
+		return nil, "", errors.New(NOT_FOUND)
 	}
 
 	if pr.Status == models.StatusMerged {
-		return nil, "", errors.New("PR_MERGED")
+		return nil, "", errors.New(PR_MERGED)
 	}
 
 	isAssigned := false
@@ -114,17 +114,17 @@ func (prs *prService) ReassignReviewer(ctx context.Context, prID, oldReviewerID 
 		}
 	}
 	if !isAssigned {
-		return nil, "", errors.New("NOT_ASSIGNED")
+		return nil, "", errors.New(NOT_ASSIGNED)
 	}
 
 	oldReviewer, err := prs.userRepo.GetUser(ctx, oldReviewerID)
 	if err != nil {
-		return nil, "", errors.New("NOT_FOUND")
+		return nil, "", errors.New(NOT_FOUND)
 	}
 
 	candidates, err := prs.userRepo.GetActiveUsersByTeam(ctx, oldReviewer.TeamName)
 	if err != nil {
-		return nil, "", errors.New("NO_CANDIDATE")
+		return nil, "", errors.New(NO_CANDIDATE)
 	}
 
 	var available []string
@@ -147,7 +147,7 @@ func (prs *prService) ReassignReviewer(ctx context.Context, prID, oldReviewerID 
 	}
 
 	if len(available) == 0 {
-		return nil, "", errors.New("NO_CANDIDATE")
+		return nil, "", errors.New(NO_CANDIDATE)
 	}
 
 	newReviewerID := available[rand.Intn(len(available))]

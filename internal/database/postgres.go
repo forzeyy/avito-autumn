@@ -49,12 +49,12 @@ func (db *DB) Query(ctx context.Context, query string, args ...interface{}) (pgx
 
 type TxFunc func(tx pgx.Tx) error
 
-func (db *DB) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error) {
-	return db.pool.BeginTx(ctx, txOptions)
+func (db *DB) BeginTx(ctx context.Context, txOptions *pgx.TxOptions) (pgx.Tx, error) {
+	return db.pool.BeginTx(ctx, *txOptions)
 }
 
-func (db *DB) WithinTx(ctx context.Context, txFunc TxFunc, txOptions pgx.TxOptions) error {
-	tx, err := db.pool.BeginTx(ctx, txOptions)
+func (db *DB) WithinTx(ctx context.Context, txFunc TxFunc, txOptions *pgx.TxOptions) error {
+	tx, err := db.pool.BeginTx(ctx, *txOptions)
 	if err != nil {
 		return fmt.Errorf("не удалось начать транзакцию: %v", err)
 	}

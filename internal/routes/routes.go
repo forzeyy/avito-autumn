@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"github.com/forzeyy/avito-autumn/internal/config"
 	"github.com/forzeyy/avito-autumn/internal/database"
 	"github.com/forzeyy/avito-autumn/internal/handlers"
 	"github.com/forzeyy/avito-autumn/internal/repos"
@@ -9,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func InitRoutes(e *echo.Echo, db *database.DB, cfg *config.Config) {
+func InitRoutes(e *echo.Echo, db *database.DB) {
 	userRepo := repos.NewUserRepo(db)
 	prRepo := repos.NewPRRepo(db)
 	teamRepo := repos.NewTeamRepo(db)

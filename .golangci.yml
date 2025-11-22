@@ -1,0 +1,60 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - gofmt
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - gosimple
+    - goconst
+    - gocyclo
+    - gocritic
+    - gosec
+    - misspell
+    - bodyclose
+    - unparam
+    - wastedassign
+    - whitespace
+    - stylecheck
+    - revive
+
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  goconst:
+    min-len: 2
+    min-occurrences: 3
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+      - style
+    disabled-checks:
+      - whyNoLint
+
+issues:
+  exclude-dirs:
+    - vendor
+    - .git
+    - migrations
+  
+  exclude-files:
+    - ".*_test\\.go$"
+
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - gosec
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
