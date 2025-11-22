@@ -6,14 +6,13 @@ import (
 	"fmt"
 
 	"github.com/forzeyy/avito-autumn/internal/models"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 type UserRepo interface {
-	GetUser(ctx context.Context, userID uuid.UUID) (*models.User, error)
+	GetUser(ctx context.Context, userID string) (*models.User, error)
 	UpsertUser(ctx context.Context, user *models.User) error
-	SetUserActive(ctx context.Context, userID uuid.UUID, isActive bool) (*models.User, error)
+	SetUserActive(ctx context.Context, userID string, isActive bool) (*models.User, error)
 	GetActiveUsersByTeam(ctx context.Context, teamName string) ([]models.User, error)
 }
 
@@ -27,7 +26,7 @@ func NewUserRepo(db DBInterface) UserRepo {
 	}
 }
 
-func (ur *userRepo) GetUser(ctx context.Context, userID uuid.UUID) (*models.User, error) {
+func (ur *userRepo) GetUser(ctx context.Context, userID string) (*models.User, error) {
 	var user models.User
 
 	query := `
@@ -65,7 +64,7 @@ func (ur *userRepo) UpsertUser(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-func (ur *userRepo) SetUserActive(ctx context.Context, userID uuid.UUID, isActive bool) (*models.User, error) {
+func (ur *userRepo) SetUserActive(ctx context.Context, userID string, isActive bool) (*models.User, error) {
 	var user models.User
 
 	query := `

@@ -1,6 +1,6 @@
 -- +migrate Up
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY,
     username TEXT NOT NULL,
     team_name TEXT NOT NULL,
     is_active BOOLEAN DEFAULT true NOT NULL,

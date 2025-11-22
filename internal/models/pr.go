@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Status string
@@ -14,11 +12,18 @@ const (
 )
 
 type PullRequest struct {
-	ID                uuid.UUID   `json:"pull_request_id"`
-	Name              string      `json:"pull_request_name"`
-	AuthorID          uuid.UUID   `json:"author_id"`
-	Status            Status      `json:"status"`
-	AssignedReviewers []uuid.UUID `json:"assigned_reviewers,omitempty"`
-	CreatedAt         *time.Time  `json:"created_at,omitempty"`
-	MergedAt          *time.Time  `json:"merged_at,omitempty"`
+	ID                string     `json:"pull_request_id"`
+	Name              string     `json:"pull_request_name"`
+	AuthorID          string     `json:"author_id"`
+	Status            Status     `json:"status"`
+	AssignedReviewers []string   `json:"assigned_reviewers,omitempty"`
+	CreatedAt         *time.Time `json:"created_at,omitempty"`
+	MergedAt          *time.Time `json:"merged_at,omitempty"`
+}
+
+type PullRequestShort struct {
+	ID       string `json:"pull_request_id"`
+	Name     string `json:"pull_request_name"`
+	AuthorID string `json:"author_id"`
+	Status   Status `json:"status"`
 }

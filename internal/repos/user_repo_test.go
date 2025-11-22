@@ -8,7 +8,6 @@ import (
 	"github.com/forzeyy/avito-autumn/internal/database"
 	"github.com/forzeyy/avito-autumn/internal/models"
 	"github.com/forzeyy/avito-autumn/internal/repos"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pashagolub/pgxmock/v4"
@@ -68,7 +67,7 @@ func TestUserRepo_GetUser(t *testing.T) {
 	db := &MockDB{mock: mock}
 	repo := repos.NewUserRepo(db)
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := "userid"
 
 	t.Run("успешное получение пользователя", func(t *testing.T) {
 		expectedUser := &models.User{
@@ -127,7 +126,7 @@ func TestUserRepo_UpsertUser(t *testing.T) {
 
 	ctx := context.Background()
 	user := &models.User{
-		ID:       uuid.New(),
+		ID:       "cool_id",
 		Username: "cool_username",
 		TeamName: "cool_team",
 		IsActive: true,
@@ -166,7 +165,7 @@ func TestUserRepo_SetUserActive(t *testing.T) {
 	repo := repos.NewUserRepo(db)
 
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := "userid"
 	isActive := false
 
 	t.Run("успешное изменение статуса пользователя", func(t *testing.T) {
@@ -230,13 +229,13 @@ func TestUserRepo_GetActiveUsersByTeam(t *testing.T) {
 	t.Run("успешное получение активных пользователей команды", func(t *testing.T) {
 		expectedUsers := []models.User{
 			{
-				ID:       uuid.New(),
+				ID:       "userid1",
 				Username: "user1",
 				TeamName: teamName,
 				IsActive: true,
 			},
 			{
-				ID:       uuid.New(),
+				ID:       "userid2",
 				Username: "user2",
 				TeamName: teamName,
 				IsActive: false,

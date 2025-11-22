@@ -7,7 +7,6 @@ import (
 
 	"github.com/forzeyy/avito-autumn/internal/models"
 	"github.com/forzeyy/avito-autumn/internal/repos"
-	"github.com/google/uuid"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -61,12 +60,12 @@ func TestTeamRepo_GetTeam(t *testing.T) {
 	t.Run("успешное получение команды с участниками", func(t *testing.T) {
 		expectedMembers := []models.TeamMember{
 			{
-				UserID:   uuid.New(),
+				UserID:   "user-id1",
 				Username: "user1",
 				IsActive: true,
 			},
 			{
-				UserID:   uuid.New(),
+				UserID:   "user-id2",
 				Username: "user2",
 				IsActive: false,
 			},
@@ -103,7 +102,7 @@ func TestTeamRepo_GetTeam(t *testing.T) {
 
 	t.Run("ошибка при сканировании строки", func(t *testing.T) {
 		rows := pgxmock.NewRows([]string{"id", "username", "is_active"}).
-			AddRow("invalid-uuid", "user1", true)
+			AddRow("invalid-id", "user1", true)
 
 		mock.ExpectQuery(`SELECT id, username, is_active FROM users WHERE team_name = \$1`).
 			WithArgs(teamName).

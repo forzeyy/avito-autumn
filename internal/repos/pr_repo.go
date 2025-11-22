@@ -6,17 +6,16 @@ import (
 	"fmt"
 
 	"github.com/forzeyy/avito-autumn/internal/models"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 type PRRepo interface {
 	CreatePR(ctx context.Context, pr *models.PullRequest) error
-	GetPRByID(ctx context.Context, prID uuid.UUID) (*models.PullRequest, error)
-	GetPRsByReviewer(ctx context.Context, userID uuid.UUID) ([]models.PullRequest, error)
-	UpdatePRStatus(ctx context.Context, prID uuid.UUID, status models.Status) (*models.PullRequest, error)
-	ReplaceReviewer(ctx context.Context, prID, oldReviewerID, newReviewerID uuid.UUID) error
-	IsPRMerged(ctx context.Context, prID uuid.UUID) (*bool, error)
+	GetPRByID(ctx context.Context, prID string) (*models.PullRequest, error)
+	GetPRsByReviewer(ctx context.Context, userID string) ([]models.PullRequestShort, error)
+	UpdatePRStatus(ctx context.Context, prID string, status models.Status) (*models.PullRequest, error)
+	ReplaceReviewer(ctx context.Context, prID, oldReviewerID, newReviewerID string) error
+	IsPRMerged(ctx context.Context, prID string) (*bool, error)
 }
 
 type prRepo struct {
@@ -63,7 +62,7 @@ func (prr *prRepo) CreatePR(ctx context.Context, pr *models.PullRequest) error {
 	return nil
 }
 
-func (prr *prRepo) GetPRByID(ctx context.Context, prID uuid.UUID) (*models.PullRequest, error) {
+func (prr *prRepo) GetPRByID(ctx context.Context, prID string) (*models.PullRequest, error) {
 	var pr models.PullRequest
 
 	query := `
@@ -83,8 +82,8 @@ func (prr *prRepo) GetPRByID(ctx context.Context, prID uuid.UUID) (*models.PullR
 	return &pr, nil
 }
 
-func (prr *prRepo) GetPRsByReviewer(ctx context.Context, userID uuid.UUID) ([]models.PullRequest, error) {
-	var prs []models.PullRequest
+func (prr *prRepo) GetPRsByReviewer(ctx context.Context, userID string) ([]models.PullRequestShort, error) {
+	var prs []models.PullRequestShort
 
 	query := `
 		SELECT p.id, p.name, p.author_id, p.status
@@ -100,7 +99,7 @@ func (prr *prRepo) GetPRsByReviewer(ctx context.Context, userID uuid.UUID) ([]mo
 
 	defer rows.Close()
 	for rows.Next() {
-		var pr models.PullRequest
+		var pr models.PullRequestShort
 		err := rows.Scan(&pr.ID, &pr.Name, &pr.AuthorID, &pr.Status)
 		if err != nil {
 			return nil, fmt.Errorf("ошибка при скане строки: %v", err)
@@ -114,7 +113,7 @@ func (prr *prRepo) GetPRsByReviewer(ctx context.Context, userID uuid.UUID) ([]mo
 	return prs, nil
 }
 
-func (prr *prRepo) UpdatePRStatus(ctx context.Context, prID uuid.UUID, status models.Status) (*models.PullRequest, error) {
+func (prr *prRepo) UpdatePRStatus(ctx context.Context, prID string, status models.Status) (*models.PullRequest, error) {
 	query := `
 		UPDATE pull_requests
 		SET status = $1, merged_at = CASE WHEN $1 = 'MERGED'
@@ -128,7 +127,7 @@ func (prr *prRepo) UpdatePRStatus(ctx context.Context, prID uuid.UUID, status mo
 	return prr.GetPRByID(ctx, prID)
 }
 
-func (prr *prRepo) ReplaceReviewer(ctx context.Context, prID, oldReviewerID, newReviewerID uuid.UUID) error {
+func (prr *prRepo) ReplaceReviewer(ctx context.Context, prID, oldReviewerID, newReviewerID string) error {
 	query := `
 		UPDATE pr_reviewers
 		SET reviewer_id = $1
@@ -141,7 +140,7 @@ func (prr *prRepo) ReplaceReviewer(ctx context.Context, prID, oldReviewerID, new
 	return nil
 }
 
-func (prr *prRepo) IsPRMerged(ctx context.Context, prID uuid.UUID) (*bool, error) {
+func (prr *prRepo) IsPRMerged(ctx context.Context, prID string) (*bool, error) {
 	var status string
 	query := `
 		SELECT status

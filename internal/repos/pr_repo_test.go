@@ -7,7 +7,6 @@ import (
 
 	"github.com/forzeyy/avito-autumn/internal/models"
 	"github.com/forzeyy/avito-autumn/internal/repos"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
@@ -23,10 +22,10 @@ func TestPRRepo_CreatePR(t *testing.T) {
 
 	ctx := context.Background()
 	pr := &models.PullRequest{
-		ID:                uuid.New(),
+		ID:                "pr-0001",
 		Name:              "test_pr",
-		AuthorID:          uuid.New(),
-		AssignedReviewers: []uuid.UUID{uuid.New(), uuid.New()},
+		AuthorID:          "userid1",
+		AssignedReviewers: []string{"userid2", "userid3"},
 		Status:            models.StatusOpen,
 	}
 
@@ -95,13 +94,13 @@ func TestPRRepo_GetPRByID(t *testing.T) {
 	repo := repos.NewPRRepo(db)
 
 	ctx := context.Background()
-	prID := uuid.New()
+	prID := "pr-0001"
 
 	t.Run("успешное получение пулл реквеста", func(t *testing.T) {
 		expectedPR := &models.PullRequest{
 			ID:       prID,
 			Name:     "test_pr",
-			AuthorID: uuid.New(),
+			AuthorID: "userid1",
 			Status:   models.StatusOpen,
 		}
 
@@ -153,20 +152,20 @@ func TestPRRepo_GetPRsByReviewer(t *testing.T) {
 	repo := repos.NewPRRepo(db)
 
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := "userid1"
 
 	t.Run("успешное получение пулл реквестов по ревьюеру", func(t *testing.T) {
 		expectedPRs := []models.PullRequest{
 			{
-				ID:       uuid.New(),
+				ID:       "pr-0001",
 				Name:     "pr_1",
-				AuthorID: uuid.New(),
+				AuthorID: "userid1",
 				Status:   models.StatusOpen,
 			},
 			{
-				ID:       uuid.New(),
+				ID:       "pr-0002",
 				Name:     "pr_2",
-				AuthorID: uuid.New(),
+				AuthorID: "userid1",
 				Status:   models.StatusMerged,
 			},
 		}
@@ -201,7 +200,7 @@ func TestPRRepo_GetPRsByReviewer(t *testing.T) {
 
 	t.Run("ошибка при сканировании строки", func(t *testing.T) {
 		rows := pgxmock.NewRows([]string{"id", "name", "author_id", "status"}).
-			AddRow("invalid-uuid", "pr_1", uuid.New(), models.StatusOpen)
+			AddRow("invalid-id", "pr_1", "userid1", models.StatusOpen)
 
 		mock.ExpectQuery(`SELECT p\.id, p\.name, p\.author_id, p\.status FROM pull_requests p JOIN pr_reviewers r ON p\.id = r\.pr_id WHERE r\.reviewer_id = \$1`).
 			WithArgs(userID).
@@ -225,14 +224,14 @@ func TestPRRepo_UpdatePRStatus(t *testing.T) {
 	repo := repos.NewPRRepo(db)
 
 	ctx := context.Background()
-	prID := uuid.New()
+	prID := "pr-0001"
 	status := models.StatusMerged
 
 	t.Run("успешное обновление статуса пулл реквеста", func(t *testing.T) {
 		updatedPR := &models.PullRequest{
 			ID:       prID,
 			Name:     "upd_pr",
-			AuthorID: uuid.New(),
+			AuthorID: "userid1",
 			Status:   status,
 		}
 
@@ -292,9 +291,9 @@ func TestPRRepo_ReplaceReviewer(t *testing.T) {
 	repo := repos.NewPRRepo(db)
 
 	ctx := context.Background()
-	prID := uuid.New()
-	oldReviewerID := uuid.New()
-	newReviewerID := uuid.New()
+	prID := "pr-0001"
+	oldReviewerID := "userid1"
+	newReviewerID := "userid2"
 
 	t.Run("успешная замена ревьюера", func(t *testing.T) {
 		mock.ExpectExec(`UPDATE pr_reviewers SET reviewer_id = \$1 WHERE pr_id = \$2 AND reviewer_id = \$3`).
@@ -329,7 +328,7 @@ func TestPRRepo_IsPRMerged(t *testing.T) {
 	repo := repos.NewPRRepo(db)
 
 	ctx := context.Background()
-	prID := uuid.New()
+	prID := "pr-0001"
 
 	t.Run("пулл реквест смерджен", func(t *testing.T) {
 		expected := true
