@@ -233,7 +233,7 @@ func (prr *prRepo) GetTotalPRCount(ctx context.Context) (int, error) {
 func (prr *prRepo) GetReviewCountByUser(ctx context.Context) ([]models.UserStats, error) {
 	query := `
         SELECT 
-            u.user_id,
+            u.id,
             u.username,
             COALESCE(review_stats.count, 0) AS review_count,
             u.is_active
@@ -242,7 +242,7 @@ func (prr *prRepo) GetReviewCountByUser(ctx context.Context) ([]models.UserStats
             SELECT reviewer_id, COUNT(*) AS count
             FROM pr_reviewers
             GROUP BY reviewer_id
-        ) AS review_stats ON u.user_id = review_stats.reviewer_id
+        ) AS review_stats ON u.id = review_stats.reviewer_id
         ORDER BY review_count DESC, u.username
     `
 
