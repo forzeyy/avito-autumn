@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS pr_reviewers (
 );
 
 CREATE INDEX IF NOT EXISTS idx_pr_reviewers_pr_id ON pr_reviewers (pr_id);
+CREATE INDEX IF NOT EXISTS idx_pr_reviewers_reviewer_id_count ON pr_reviewers (reviewer_id) WHERE reviewer_id IS NOT NULL;

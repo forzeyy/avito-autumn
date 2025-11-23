@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_user_id ON users (id);
+CREATE INDEX IF NOT EXISTS idx_users_team_active ON users (team_name, is_active);
